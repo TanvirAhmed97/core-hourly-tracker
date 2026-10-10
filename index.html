@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#172026" />
+  <meta name="description" content="A calm, 24-hour planner with five core tasks for every hour." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <title>CORE — 24 Hour Tracker</title>
+  <style>
+    :root {
+      --paper: #F6F7F2;
+      --ink: #172026;
+      --lime: #C8F169;
+      --ink-soft: rgba(23,32,38,.58);
+      --line: rgba(23,32,38,.12);
+      --panel: rgba(255,255,255,.48);
+      --shadow: 0 14px 36px rgba(23,32,38,.055);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: -0.02em;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .app-shell { width: min(100%, 1050px); margin: 0 auto; padding: 24px 22px 60px; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap: 14px; margin-bottom: 34px; }
+    .brand { display:flex; align-items:center; gap: 11px; font-weight: 900; font-size: 20px; letter-spacing:-.07em; }
+    .brand-mark { width: 34px; height:34px; background:var(--lime); border-radius: 11px; display:grid; place-items:center; color:var(--ink); font-size:17px; font-weight:950; }
+    .brand-sub { color:var(--ink-soft); font-size:10px; letter-spacing:.16em; font-weight:750; margin-top: 2px; }
+    .top-actions { display:flex; gap:8px; align-items:center; }
+    .plain-btn { border:1px solid var(--line); background:transparent; border-radius:999px; padding:10px 14px; cursor:pointer; font-size:12px; font-weight:750; transition:transform .15s, background .15s; }
+    .plain-btn:hover { background:rgba(23,32,38,.04); }
+    .plain-btn:active { transform:scale(.97); }
+    .hero { display:grid; grid-template-columns:1.15fr .85fr; gap:18px; margin-bottom:20px; }
+    .hero-copy { padding: 27px 4px 22px; align-self:center; }
+    .eyebrow { display:flex; align-items:center; gap:8px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.17em; font-size:10px; font-weight:850; }
+    .eyebrow-dot { background:var(--lime); width:8px; height:8px; border-radius:50%; }
+    h1 { margin:15px 0 12px; font-size:clamp(36px, 6vw, 64px); line-height:.98; letter-spacing:-.075em; max-width:550px; }
+    h1 span { background:var(--lime); padding:0 8px 5px; border-radius:9px; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
+    .hero-copy p { margin:16px 0 0; max-width:420px; color:var(--ink-soft); font-size:14px; line-height:1.65; }
+    .score-card { border:1px solid var(--line); border-radius:var(--radius); padding:24px; background:var(--panel); box-shadow:var(--shadow); display:flex; flex-direction:column; justify-content:space-between; min-height:200px; }
+    .score-head { display:flex; justify-content:space-between; gap:10px; align-items:center; font-size:12px; font-weight:800; }
+    .today-pill { background:var(--lime); padding:6px 9px; border-radius:8px; font-size:10px; font-weight:900; letter-spacing:.03em; }
+    .score-number-row { display:flex; align-items:baseline; gap:7px; margin: 17px 0 10px; }
+    .score-number { font-size:clamp(38px, 5vw, 54px); line-height:1; font-weight:850; letter-spacing:-.08em; font-variant-numeric:tabular-nums; }
+    .score-denom { font-size:13px; color:var(--ink-soft); font-weight:700; }
+    .progress-track { height:8px; background:rgba(23,32,38,.09); border-radius:99px; overflow:hidden; }
+    .progress-fill { height:100%; width:0%; background:var(--lime); border-radius:99px; transition:width .25s ease; }
+    .score-foot { display:flex; justify-content:space-between; align-items:center; margin-top:14px; color:var(--ink-soft); font-size:11px; font-weight:650; }
+    .stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:28px; }
+    .stat { padding:15px 17px; border:1px solid var(--line); border-radius:16px; background:rgba(255,255,255,.26); }
+    .stat-label { font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.13em; font-weight:850; }
+    .stat-value { font-size:24px; font-weight:850; letter-spacing:-.06em; margin-top:5px; font-variant-numeric:tabular-nums; }
+    .planner-head { display:flex; justify-content:space-between; align-items:flex-end; gap:14px; margin-bottom:14px; }
+    .planner-head h2 { margin:0; font-size:23px; letter-spacing:-.06em; }
+    .planner-head p { margin:5px 0 0; color:var(--ink-soft); font-size:12px; }
+    .date-controls { display:flex; gap:7px; align-items:center; }
+    .icon-btn { width:36px; height:36px; border:1px solid var(--line); background:transparent; border-radius:11px; cursor:pointer; display:grid; place-items:center; font-size:17px; }
+    .icon-btn:hover { background:rgba(23,32,38,.04); }
+    .date-input { width:145px; border:1px solid var(--line); border-radius:11px; padding:9px 10px; background:transparent; font-size:12px; font-weight:750; color:var(--ink); }
+    .list-tools { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:15px 0 12px; }
+    .list-caption { font-size:10px; text-transform:uppercase; letter-spacing:.15em; color:var(--ink-soft); font-weight:850; }
+    .focus-toggle { display:flex; align-items:center; gap:7px; cursor:pointer; font-size:11px; font-weight:800; }
+    .toggle { width:32px; height:19px; border-radius:99px; background:rgba(23,32,38,.16); display:flex; align-items:center; padding:3px; transition:background .2s; }
+    .toggle span { width:13px; height:13px; border-radius:50%; background:var(--paper); transition:transform .2s; }
+    .focus-toggle[aria-pressed="true"] .toggle { background:var(--lime); }
+    .focus-toggle[aria-pressed="true"] .toggle span { transform:translateX(13px); background:var(--ink); }
+    .hours-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:start; }
+    .hour-card { border:1px solid var(--line); border-radius:17px; overflow:hidden; background:rgba(255,255,255,.28); min-width:0; transition:border-color .2s, background .2s; }
+    .hour-card.is-current { border-color:var(--ink); background:rgba(255,255,255,.6); }
+    .hour-card.is-complete .hour-summary { background:rgba(200,241,105,.22); }
+    .hour-summary { display:flex; align-items:center; gap:12px; width:100%; border:0; background:transparent; text-align:left; padding:14px 15px; cursor:pointer; min-width:0; }
+    .hour-number { flex:0 0 38px; height:38px; display:grid; place-items:center; border-radius:12px; background:rgba(23,32,38,.055); font-size:12px; font-weight:900; font-variant-numeric:tabular-nums; }
+    .is-current .hour-number { background:var(--lime); }
+    .hour-main { min-width:0; flex:1; }
+    .hour-time { display:flex; align-items:center; gap:7px; font-size:12px; font-weight:850; white-space:nowrap; }
+    .now-label { text-transform:uppercase; font-size:8px; letter-spacing:.1em; background:var(--lime); padding:3px 5px; border-radius:5px; }
+    .hour-sub { margin-top:4px; font-size:10px; color:var(--ink-soft); font-weight:650; }
+    .hour-trailing { display:flex; align-items:center; gap:8px; color:var(--ink-soft); }
+    .mini-progress { font-size:10px; font-weight:850; font-variant-numeric:tabular-nums; }
+    .chevron { font-size:16px; transition:transform .2s; }
+    .hour-card.open .chevron { transform:rotate(180deg); }
+    .task-panel { display:none; padding:0 12px 12px; }
+    .hour-card.open .task-panel { display:block; }
+    .task-list { display:flex; flex-direction:column; gap:6px; }
+    .task-row { display:grid; grid-template-columns:20px minmax(0,1fr); gap:8px; align-items:center; border:1px solid var(--line); border-radius:11px; padding:8px 9px; background:rgba(246,247,242,.6); }
+    .task-check { appearance:none; -webkit-appearance:none; width:17px; height:17px; border:1.5px solid rgba(23,32,38,.3); border-radius:5px; cursor:pointer; margin:0; display:grid; place-items:center; background:transparent; }
+    .task-check:checked { background:var(--lime); border-color:var(--ink); }
+    .task-check:checked::after { content:"✓"; color:var(--ink); font-size:12px; font-weight:950; line-height:1; }
+    .task-input { width:100%; min-width:0; border:0; outline:0; color:var(--ink); background:transparent; font-size:12px; padding:3px 0; letter-spacing:-.015em; }
+    .task-input::placeholder { color:rgba(23,32,38,.38); }
+    .task-row.done .task-input { text-decoration:line-through; color:var(--ink-soft); }
+    .slot-label { display:block; font-size:8px; color:var(--ink-soft); text-transform:uppercase; font-weight:850; letter-spacing:.1em; margin-bottom:2px; }
+    .panel-foot { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:9px 2px 0; }
+    .helper-note { font-size:9px; color:var(--ink-soft); }
+    .clear-hour { border:0; background:transparent; color:var(--ink-soft); font-size:10px; font-weight:750; cursor:pointer; padding:5px; }
+    .clear-hour:hover { color:var(--ink); }
+    .empty-state { border:1px dashed var(--line); border-radius:16px; padding:24px; font-size:13px; color:var(--ink-soft); text-align:center; }
+    .footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; padding-top:24px; margin-top:26px; border-top:1px solid var(--line); font-size:10px; color:var(--ink-soft); }
+    .footer strong { color:var(--ink); }
+    .toast { position:fixed; z-index:20; left:50%; bottom:calc(20px + env(safe-area-inset-bottom)); transform:translate(-50%, 14px); background:var(--ink); color:var(--paper); border-radius:12px; padding:11px 15px; font-size:12px; font-weight:700; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; box-shadow:var(--shadow); }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    .visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-width:720px) {
+      .app-shell { padding:18px 14px 42px; }
+      .topbar { margin-bottom:20px; }
+      .top-actions .plain-btn:first-child { display:none; }
+      .hero { grid-template-columns:1fr; gap:12px; }
+      .hero-copy { padding:12px 2px 8px; }
+      h1 { font-size:clamp(38px, 11vw, 57px); margin-top:13px; }
+      .hero-copy p { font-size:13px; margin-top:12px; }
+      .score-card { min-height:172px; padding:19px; }
+      .score-number { font-size:44px; }
+      .stat-row { gap:7px; margin-bottom:25px; }
+      .stat { padding:12px 10px; border-radius:13px; }
+      .stat-value { font-size:21px; }
+      .stat-label { font-size:8px; letter-spacing:.1em; }
+      .planner-head { align-items:flex-start; flex-direction:column; }
+      .date-controls { width:100%; }
+      .date-input { flex:1; }
+      .hours-grid { grid-template-columns:1fr; gap:8px; }
+      .hour-summary { padding:12px; }
+      .hour-number { flex-basis:36px; height:36px; }
+      .task-panel { padding:0 10px 10px; }
+      .task-row { padding:9px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior:auto !important; transition:none !important; } }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand" aria-label="CORE tracker">
+        <div class="brand-mark">C</div>
+        <div>CORE<div class="brand-sub">24 HOUR TRACKER</div></div>
+      </div>
+      <div class="top-actions">
+        <button class="plain-btn" id="todayBtn" type="button">Back to today ↗</button>
+        <button class="plain-btn" id="exportBtn" type="button">Export day ↓</button>
+      </div>
+    </header>
+
+    <section class="hero" aria-labelledby="heroTitle">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="eyebrow-dot"></span> One hour. Five priorities.</div>
+        <h1 id="heroTitle">Make time<br>work for <span>you.</span></h1>
+        <p>Give every hour a purpose. Choose up to five core actions, finish what matters, and keep distractions out of the plan.</p>
+      </div>
+      <section class="score-card" aria-label="Daily progress">
+        <div class="score-head"><span>YOUR DAILY SCORE</span><span class="today-pill" id="dayPill">TODAY</span></div>
+        <div>
+          <div class="score-number-row"><span class="score-number" id="completionPercent">0%</span><span class="score-denom">of planned tasks done</span></div>
+          <div class="progress-track" role="progressbar" aria-label="Task completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="overallProgress"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+        <div class="score-foot"><span id="completedSummary">0 completed</span><span id="remainingSummary">0 left</span></div>
+      </section>
+    </section>
+
+    <section class="stat-row" aria-label="Daily task statistics">
+      <div class="stat"><div class="stat-label">Planned</div><div class="stat-value" id="plannedCount">0 <span style="font-size:12px;font-weight:700;letter-spacing:0;color:var(--ink-soft)">/ 120</span></div></div>
+      <div class="stat"><div class="stat-label">Completed</div><div class="stat-value" id="doneCount">0</div></div>
+      <div class="stat"><div class="stat-label">Hours with a plan</div><div class="stat-value" id="hoursCount">0 <span style="font-size:12px;font-weight:700;letter-spacing:0;color:var(--ink-soft)">/ 24</span></div></div>
+    </section>
+
+    <section aria-labelledby="plannerTitle">
+      <div class="planner-head">
+        <div><h2 id="plannerTitle">Your 24 hours</h2><p>Five slots per hour. Keep each one intentional.</p></div>
+        <div class="date-controls" aria-label="Choose day">
+          <button class="icon-btn" id="prevDay" type="button" aria-label="Previous day">‹</button>
+          <label class="visually-hidden" for="selectedDate">Selected date</label>
+          <input class="date-input" id="selectedDate" type="date" />
+          <button class="icon-btn" id="nextDay" type="button" aria-label="Next day">›</button>
+        </div>
+      </div>
+      <div class="list-tools">
+        <span class="list-caption" id="dayCaption">00:00 — 23:59 · 24 blocks</span>
+        <button class="focus-toggle" id="focusToggle" type="button" aria-pressed="false"><span class="toggle"><span></span></span> Focus hour only</button>
+      </div>
+      <div id="hoursGrid" class="hours-grid" aria-live="polite"></div>
+    </section>
+
+    <footer class="footer"><span><strong>CORE</strong> · Small actions, intentional hours.</span><span>Your plan stays on this device.</span></footer>
+  </main>
+  <div class="toast" role="status" aria-live="polite" id="toast"></div>
+
+  <script>
+    (() => {
+      'use strict';
+      const STORAGE_KEY = 'core-hourly-tracker-v1';
+      const MAX_HOURS = 24;
+      const SLOTS_PER_HOUR = 5;
+      const $ = (id) => document.getElementById(id);
+      const dateInput = $('selectedDate');
+      const grid = $('hoursGrid');
+      const today = new Date();
+      const todayKey = dateToKey(today);
+      let selectedKey = todayKey;
+      let allDays = loadStore();
+      let focusOnly = false;
+      let toastTimeout;
+
+      function dateToKey(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+      function keyToDate(key) {
+        const [y, m, d] = key.split('-').map(Number);
+        return new Date(y, m - 1, d, 12, 0, 0);
+      }
+      function getDay(key) {
+        if (!allDays[key]) {
+          allDays[key] = Array.from({ length: MAX_HOURS }, () =>
+            Array.from({ length: SLOTS_PER_HOUR }, () => ({ text: '', done: false }))
+          );
+        }
+        // Defensive normalization in case a prior version or edited storage has a different shape.
+        allDays[key] = Array.from({ length: MAX_HOURS }, (_, h) =>
+          Array.from({ length: SLOTS_PER_HOUR }, (_, s) => {
+            const item = allDays[key]?.[h]?.[s];
+            return { text: typeof item?.text === 'string' ? item.text.slice(0, 300) : '', done: Boolean(item?.done) };
+          })
+        );
+        return allDays[key];
+      }
+      function loadStore() {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+          return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+        } catch (_) { return {}; }
+      }
+      function persist() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(allDays));
+          return true;
+        } catch (_) {
+          showToast('Could not save. Check your browser storage.');
+          return false;
+        }
+      }
+      function hourLabel(hour) {
+        return `${String(hour).padStart(2, '0')}:00`;
+      }
+      function readableDate(key) {
+        if (key === todayKey) return 'Today';
+        return keyToDate(key).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+      }
+      function countStats() {
+        const data = getDay(selectedKey);
+        let planned = 0, done = 0, plannedHours = 0;
+        data.forEach((slots) => {
+          const active = slots.filter((t) => t.text.trim().length > 0);
+          planned += active.length;
+          done += active.filter((t) => t.done).length;
+          if (active.length) plannedHours++;
+        });
+        return { planned, done, plannedHours, remaining: planned - done, percent: planned ? Math.round(done / planned * 100) : 0 };
+      }
+      function updateStats() {
+        const s = countStats();
+        $('completionPercent').textContent = `${s.percent}%`;
+        $('progressFill').style.width = `${s.percent}%`;
+        $('overallProgress').setAttribute('aria-valuenow', String(s.percent));
+        $('completedSummary').textContent = `${s.done} completed`;
+        $('remainingSummary').textContent = `${s.remaining} left`;
+        $('plannedCount').innerHTML = `${s.planned} <span style="font-size:12px;font-weight:700;letter-spacing:0;color:var(--ink-soft)">/ 120</span>`;
+        $('doneCount').textContent = s.done;
+        $('hoursCount').innerHTML = `${s.plannedHours} <span style="font-size:12px;font-weight:700;letter-spacing:0;color:var(--ink-soft)">/ 24</span>`;
+        $('dayPill').textContent = selectedKey === todayKey ? 'TODAY' : readableDate(selectedKey).toUpperCase();
+      }
+      function render() {
+        const day = getDay(selectedKey);
+        const currentHour = selectedKey === todayKey ? new Date().getHours() : -1;
+        $('dayCaption').textContent = `${readableDate(selectedKey)} · 24 blocks · 120 task slots`;
+        grid.innerHTML = '';
+        day.forEach((slots, hour) => {
+          if (focusOnly && hour !== currentHour) return;
+          const populated = slots.filter((s) => s.text.trim());
+          const completed = populated.filter((s) => s.done).length;
+          const isCurrent = hour === currentHour;
+          const isComplete = populated.length > 0 && completed === populated.length;
+          const card = document.createElement('article');
+          card.className = `hour-card${isCurrent ? ' is-current' : ''}${isComplete ? ' is-complete' : ''}`;
+          if (isCurrent) card.classList.add('open');
+          card.dataset.hour = String(hour);
+
+          const summary = document.createElement('button');
+          summary.type = 'button';
+          summary.className = 'hour-summary';
+          summary.setAttribute('aria-expanded', isCurrent ? 'true' : 'false');
+          summary.innerHTML = `
+            <span class="hour-number">${String(hour).padStart(2, '0')}</span>
+            <span class="hour-main">
+              <span class="hour-time">${hourLabel(hour)} — ${hourLabel((hour + 1) % 24)}${isCurrent ? '<span class="now-label">NOW</span>' : ''}</span>
+              <span class="hour-sub">${populated.length ? `${populated.length} core ${populated.length === 1 ? 'task' : 'tasks'}` : 'No priorities set'}</span>
+            </span>
+            <span class="hour-trailing"><span class="mini-progress">${completed}/${populated.length || 5}</span><span class="chevron">⌄</span></span>`;
+          summary.addEventListener('click', () => {
+            const wasOpen = card.classList.contains('open');
+            card.classList.toggle('open', !wasOpen);
+            summary.setAttribute('aria-expanded', String(!wasOpen));
+          });
+
+          const panel = document.createElement('div');
+          panel.className = 'task-panel';
+          const taskList = document.createElement('div');
+          taskList.className = 'task-list';
+          slots.forEach((item, slot) => {
+            const row = document.createElement('label');
+            row.className = `task-row${item.done ? ' done' : ''}`;
+            const check = document.createElement('input');
+            check.type = 'checkbox';
+            check.className = 'task-check';
+            check.checked = item.done;
+            check.setAttribute('aria-label', `Mark task ${slot + 1} complete for ${hourLabel(hour)}`);
+            check.addEventListener('change', () => {
+              getDay(selectedKey)[hour][slot].done = check.checked;
+              persist();
+              render();
+            });
+            const inputWrap = document.createElement('span');
+            const slotLabel = document.createElement('span');
+            slotLabel.className = 'slot-label';
+            slotLabel.textContent = `CORE ${slot + 1}`;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.maxLength = 300;
+            input.className = 'task-input';
+            input.placeholder = slot === 0 ? 'What matters most this hour?' : 'Add a core task…';
+            input.value = item.text;
+            input.setAttribute('aria-label', `Core task ${slot + 1}, ${hourLabel(hour)}`);
+            input.autocomplete = 'off';
+            input.addEventListener('input', () => {
+              const current = getDay(selectedKey)[hour][slot];
+              current.text = input.value;
+              if (!input.value.trim()) current.done = false;
+              persist();
+              updateStats();
+              // Update the card summary without rebuilding the field being typed into.
+              const active = getDay(selectedKey)[hour].filter((t) => t.text.trim());
+              const finished = active.filter((t) => t.done).length;
+              card.querySelector('.hour-sub').textContent = active.length ? `${active.length} core ${active.length === 1 ? 'task' : 'tasks'}` : 'No priorities set';
+              card.querySelector('.mini-progress').textContent = `${finished}/${active.length || 5}`;
+            });
+            input.addEventListener('change', () => { getDay(selectedKey)[hour][slot].text = input.value.trim(); persist(); render(); });
+            inputWrap.append(slotLabel, input);
+            row.append(check, inputWrap);
+            taskList.append(row);
+          });
+          const panelFoot = document.createElement('div');
+          panelFoot.className = 'panel-foot';
+          const note = document.createElement('span');
+          note.className = 'helper-note';
+          note.textContent = 'Up to 5 core tasks. Less is okay.';
+          const clear = document.createElement('button');
+          clear.type = 'button'; clear.className = 'clear-hour'; clear.textContent = 'Clear hour';
+          clear.addEventListener('click', () => {
+            if (!slots.some((s) => s.text || s.done)) return;
+            getDay(selectedKey)[hour] = Array.from({ length: SLOTS_PER_HOUR }, () => ({ text: '', done: false }));
+            persist(); render(); showToast(`${hourLabel(hour)} cleared`);
+          });
+          panelFoot.append(note, clear);
+          panel.append(taskList, panelFoot);
+          card.append(summary, panel);
+          grid.append(card);
+        });
+        updateStats();
+        if (focusOnly && currentHourUnavailable(currentHourSafe())) {
+          grid.innerHTML = '<div class="empty-state">Focus hour only shows today’s current hour. Switch it off to see all 24 hours.</div>';
+        }
+      }
+      function currentHourSafe() { return selectedKey === todayKey ? new Date().getHours() : -1; }
+      function currentHourUnavailable(hour) { return hour < 0; }
+      function selectDate(key) {
+        selectedKey = key;
+        dateInput.value = selectedKey;
+        render();
+      }
+      function showToast(message) {
+        const toast = $('toast'); toast.textContent = message; toast.classList.add('show');
+        clearTimeout(toastTimeout); toastTimeout = setTimeout(() => toast.classList.remove('show'), 2100);
+      }
+      function shiftDate(delta) {
+        const d = keyToDate(selectedKey); d.setDate(d.getDate() + delta); selectDate(dateToKey(d));
+      }
+      function exportDay() {
+        const day = getDay(selectedKey);
+        const csvCell = (value) => `"${String(value).replace(/"/g, '""')}"`;
+        const rows = [['Date', selectedKey], ['Hour', 'Core slot', 'Task', 'Completed']];
+        day.forEach((slots, hour) => slots.forEach((s, i) => {
+          if (s.text.trim() || s.done) rows.push([`${hourLabel(hour)}–${hourLabel((hour + 1) % 24)}`, `Core ${i + 1}`, s.text, s.done ? 'Yes' : 'No']);
+        }));
+        const csv = rows.map((r) => r.map(csvCell).join(',')).join('\r\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = `core-plan-${selectedKey}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        showToast('Day exported as CSV');
+      }
+      dateInput.value = todayKey;
+      dateInput.addEventListener('change', () => {
+        if (dateInput.value) { focusOnly = false; $('focusToggle').setAttribute('aria-pressed', 'false'); selectDate(dateInput.value); }
+      });
+      $('prevDay').addEventListener('click', () => { focusOnly = false; $('focusToggle').setAttribute('aria-pressed', 'false'); shiftDate(-1); });
+      $('nextDay').addEventListener('click', () => { focusOnly = false; $('focusToggle').setAttribute('aria-pressed', 'false'); shiftDate(1); });
+      $('todayBtn').addEventListener('click', () => { focusOnly = false; $('focusToggle').setAttribute('aria-pressed', 'false'); selectDate(todayKey); });
+      $('exportBtn').addEventListener('click', exportDay);
+      $('focusToggle').addEventListener('click', () => {
+        focusOnly = !focusOnly;
+        $('focusToggle').setAttribute('aria-pressed', String(focusOnly));
+        render();
+        if (focusOnly && selectedKey !== todayKey) showToast('Choose today to focus on the current hour');
+      });
+      window.addEventListener('storage', (event) => {
+        if (event.key === STORAGE_KEY) { allDays = loadStore(); render(); }
+      });
+      render();
+
+      // A service worker is used when hosted over HTTPS or localhost; the app still works without it.
+      if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+        window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+      }
+    })();
+  </script>
+</body>
+</html>
